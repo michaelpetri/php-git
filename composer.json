@@ -1,0 +1,51 @@
+{
+    "name": "michaelpetri/php-git",
+    "description": "Simple wrapper around git cli, based on symfony/process.",
+    "authors": [
+        {
+            "name": "Michael Petri",
+            "email": "mpetri@lyska.io"
+        }
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "~8.1.0 || ~8.2.0",
+        "symfony/process": "^6.2.7",
+        "michaelpetri/php-generic-list": "^0.1.1"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "phpunit/phpunit": "^9.5",
+        "roave/security-advisories": "dev-latest",
+        "vimeo/psalm": "^4.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "MichaelPetri\\Git\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\MichaelPetri\\Git\\": "tests/"
+        }
+    },
+    "scripts": {
+        "lint": [
+            "@validate",
+            "@psalm",
+            "@php-cs-fix",
+            "@security"
+        ],
+        "test": [
+            "@phpunit"
+        ],
+        "psalm": "vendor/bin/psalm --no-progress",
+        "psalm-cache-clear": "vendor/bin/psalm --clear-cache",
+        "psalm-baseline": "vendor/bin/psalm --update-baseline",
+        "psalm-reset-baseline": "vendor/bin/psalm --set-baseline=psalm-baseline.xml",
+        "php-cs-fix": "PHP_CS_FIXER_FUTURE_MODE=1 vendor/bin/php-cs-fixer fix --allow-risky=yes",
+        "security": "composer update --dry-run roave/security-advisories",
+        "phpunit": "vendor/bin/phpunit --testdox --order-by=random",
+        "phpunit-coverage-report": "vendor/bin/phpunit --coverage-html=.phpunit-coverage-report"
+    }
+}
