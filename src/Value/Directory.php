@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace MichaelPetri\Git\Value;
+
+/** @psalm-immutable */
+final class Directory
+{
+    /** @psalm-param non-empty-string $path */
+    private function __construct(
+        public readonly string $path
+    ) {
+    }
+
+    public static function from(mixed $value): self
+    {
+        if (!\is_string($value)) {
+            throw new \InvalidArgumentException(\sprintf('Can only create directory from string, got "%s"', get_debug_type($value)));
+        }
+
+        $value = \trim($value);
+
+        if ('' === $value) {
+            throw new \InvalidArgumentException('Directory path must be non-empty-string');
+        }
+
+        return new self($value);
+    }
+}
