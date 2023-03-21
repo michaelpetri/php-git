@@ -74,10 +74,18 @@ final class GitRepository implements GitRepositoryInterface
         }
     }
 
-    public function remove(File $file): void
+    public function remove(File $file, bool $cached = false): void
     {
         try {
-            $this->execute(['git', 'rm', $this->getRelativePath($file)]);
+            $command = ['git', 'rm'];
+
+            if ($cached) {
+                $command[] = '--cached';
+            }
+
+            $command[] = $this->getRelativePath($file);
+
+            $this->execute($command);
         } catch (RuntimeException|\InvalidArgumentException $e) {
             throw FileNotRemoved::fromFile($file, $e);
         }
@@ -141,9 +149,9 @@ final class GitRepository implements GitRepositoryInterface
 
         return \substr(
             \str_replace(
-                \realpath($this->directory->path),
+                $this->directory->path,
                 '',
-                \realpath($file->toString())
+                $file->toString()
             ),
             1
         );

@@ -9,5 +9,6 @@ $finder = PhpCsFixer\Finder::create()
 return (new PhpCsFixer\Config())
     ->setRules([
         '@PSR12' => true,
+        'no_unused_imports' => true,
     ])
     ->setFinder($finder);
