@@ -104,6 +104,23 @@ final class GitRepositoryTest extends TestCase
         );
     }
 
+    public function testRemoveFromIndex(): void
+    {
+        $directory = $this->createDirectory(__FUNCTION__);
+        $file = $this->createFile($directory, 'existing-committed-file');
+        $repository = $this->createRepository($directory);
+
+        $repository->add($file);
+        $repository->remove($file, true);
+
+        self::assertEquals(
+            [
+                new Change($file, Status::UNTRACKED, Status::UNTRACKED),
+            ],
+            $repository->status()->toArray()
+        );
+    }
+
     public function testRemoveFailsWhenTryToRemoveFileOutsideRepository(): void
     {
         $directory = $this->createDirectory(__FUNCTION__);

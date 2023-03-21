@@ -8,8 +8,6 @@ use MichaelPetri\Git\Value\Directory;
 use MichaelPetri\Git\Value\File;
 use Throwable;
 
-use function sprintf;
-
 final class FileNotCommitted extends GitException
 {
     /** @psalm-param list<File> $files */

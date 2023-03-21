@@ -29,7 +29,7 @@ interface GitRepositoryInterface
     public function add(File $file): void;
 
     /** @throws FileNotRemoved */
-    public function remove(File $file): void;
+    public function remove(File $file, bool $cached = false): void;
 
     /**
      * @psalm-param non-empty-string $message
