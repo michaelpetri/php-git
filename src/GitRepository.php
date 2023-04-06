@@ -12,6 +12,7 @@ use MichaelPetri\Git\Exception\RepositoryNotInitialized;
 use MichaelPetri\Git\Exception\StatusNotFound;
 use MichaelPetri\Git\Value\Change;
 use MichaelPetri\Git\Value\Directory;
+use MichaelPetri\Git\Value\Duration;
 use MichaelPetri\Git\Value\File;
 use MichaelPetri\Git\Value\Status;
 use Symfony\Component\Process\Exception\RuntimeException;
@@ -20,7 +21,8 @@ use Symfony\Component\Process\Process;
 final class GitRepository implements GitRepositoryInterface
 {
     public function __construct(
-        private readonly Directory $directory
+        private readonly Directory $directory,
+        private readonly ?Duration $timeout
     ) {
     }
 
@@ -115,7 +117,13 @@ final class GitRepository implements GitRepositoryInterface
     /** @throws RuntimeException */
     private function execute(array $command): ?string
     {
-        $process = new Process($command, $this->directory->path);
+        $process = new Process(
+            $command,
+            $this->directory->path,
+            null,
+            null,
+            $this->timeout?->seconds
+        );
         $process->mustRun();
         $output = $process->getOutput();
 

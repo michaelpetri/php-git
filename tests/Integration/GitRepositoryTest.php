@@ -12,6 +12,7 @@ use MichaelPetri\Git\Exception\StatusNotFound;
 use MichaelPetri\Git\GitRepository;
 use MichaelPetri\Git\Value\Change;
 use MichaelPetri\Git\Value\Directory;
+use MichaelPetri\Git\Value\Duration;
 use MichaelPetri\Git\Value\File;
 use MichaelPetri\Git\Value\Status;
 use PHPUnit\Framework\TestCase;
@@ -36,7 +37,7 @@ final class GitRepositoryTest extends TestCase
     public function testInit(): void
     {
         $directory = $this->createDirectory(__FUNCTION__);
-        $repository = new GitRepository($directory);
+        $repository = new GitRepository($directory, Duration::inSeconds(60));
 
         self::assertDirectoryDoesNotExist($directory->path.\DIRECTORY_SEPARATOR.'.git');
 
@@ -48,7 +49,7 @@ final class GitRepositoryTest extends TestCase
     public function testInitFailsWhenDirectoryNotExists(): void
     {
         $directory = $this->createDirectory(__FUNCTION__);
-        $repository = new GitRepository($directory);
+        $repository = new GitRepository($directory, Duration::inSeconds(60));
 
         $this->delete($directory);
 
@@ -258,6 +259,18 @@ final class GitRepositoryTest extends TestCase
         );
     }
 
+    public function testTimeout(): void
+    {
+        $directory = $this->createDirectory(__FUNCTION__);
+        $repository = new GitRepository($directory, Duration::inMilliseconds(1));
+
+        $this->expectExceptionObject(
+            RepositoryNotInitialized::fromDirectory($directory)
+        );
+
+        $repository->init();
+    }
+
     /** @psalm-param non-empty-string $name */
     private function createDirectory(string $name): Directory
     {
@@ -294,7 +307,7 @@ final class GitRepositoryTest extends TestCase
         $p = new Process(['git', 'config', 'user.name', 'Symfony Filesystem Event Receiver'], $directory->path);
         $p->mustRun();
 
-        $repository = new GitRepository($directory);
+        $repository = new GitRepository($directory, Duration::inSeconds(60));
 
         if ([] === $files) {
             return $repository;
