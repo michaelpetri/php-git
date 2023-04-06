@@ -46,7 +46,7 @@ final class GitRepository implements GitRepositoryInterface
         }
 
         if (null === $output) {
-            return ImmutableList::of([]);
+            return ImmutableList::of();
         }
 
         // Parse working tree & index status and filename: XY Filename
@@ -64,7 +64,7 @@ final class GitRepository implements GitRepositoryInterface
             );
         }
 
-        return ImmutableList::of($changes);
+        return ImmutableList::of(...$changes);
     }
 
     public function add(File $file): void

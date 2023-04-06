@@ -4,30 +4,30 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2d42eb4adfc929423105be0f4f6b01e8",
+    "content-hash": "dad65490b9dcbc05a3ddf43a796198dc",
     "packages": [
         {
             "name": "michaelpetri/php-generic-list",
-            "version": "0.1.1",
+            "version": "0.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/michaelpetri/php-generic-list.git",
-                "reference": "2a5bce45a4e4d9d09d1c319569964f8e66309ee9"
+                "reference": "7d7e30a58a1fed0c91f3817d2a0cbb0314b460d6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/michaelpetri/php-generic-list/zipball/2a5bce45a4e4d9d09d1c319569964f8e66309ee9",
-                "reference": "2a5bce45a4e4d9d09d1c319569964f8e66309ee9",
+                "url": "https://api.github.com/repos/michaelpetri/php-generic-list/zipball/7d7e30a58a1fed0c91f3817d2a0cbb0314b460d6",
+                "reference": "7d7e30a58a1fed0c91f3817d2a0cbb0314b460d6",
                 "shasum": ""
             },
             "require": {
                 "php": "~8.1.0 || ~8.2.0"
             },
             "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.0",
-                "phpunit/phpunit": "^9.5",
+                "friendsofphp/php-cs-fixer": "^3.16.0",
+                "phpunit/phpunit": "^10.0.19",
                 "roave/security-advisories": "dev-latest",
-                "vimeo/psalm": "^4.3"
+                "vimeo/psalm": "^5.9.0"
             },
             "type": "library",
             "autoload": {
@@ -48,9 +48,9 @@
             "description": "Basic generic list with psalm support",
             "support": {
                 "issues": "https://github.com/michaelpetri/php-generic-list/issues",
-                "source": "https://github.com/michaelpetri/php-generic-list/tree/0.1.1"
+                "source": "https://github.com/michaelpetri/php-generic-list/tree/0.2.0"
             },
-            "time": "2023-02-06T09:52:29+00:00"
+            "time": "2023-04-06T14:30:09+00:00"
         },
         {
             "name": "symfony/process",
