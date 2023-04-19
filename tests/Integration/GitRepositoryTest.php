@@ -259,6 +259,75 @@ final class GitRepositoryTest extends TestCase
         );
     }
 
+    public function testResetAllFiles(): void
+    {
+        $directory = $this->createDirectory(__FUNCTION__);
+        $file1 = $this->createFile($directory, 'new-uncommitted-file-1');
+        $file2 = $this->createFile($directory, 'new-uncommitted-file-2');
+        $repository = $this->createRepository($directory);
+
+        self::assertEquals(
+            [
+                new Change($file1, Status::UNTRACKED, Status::UNTRACKED),
+                new Change($file2, Status::UNTRACKED, Status::UNTRACKED)
+            ],
+            $repository->status()->toArray()
+        );
+
+        $repository->add($file1);
+        $repository->add($file2);
+
+        self::assertEquals(
+            [
+                new Change($file1, Status::ADDED, Status::UNMODIFIED),
+                new Change($file2, Status::ADDED, Status::UNMODIFIED)
+            ],
+            $repository->status()->toArray()
+        );
+
+        $repository->reset();
+
+        self::assertEquals(
+            [
+                new Change($file1, Status::UNTRACKED, Status::UNTRACKED),
+                new Change($file2, Status::UNTRACKED, Status::UNTRACKED)
+            ],
+            $repository->status()->toArray()
+        );
+    }
+
+    public function testResetSingleFile(): void
+    {
+        $directory = $this->createDirectory(__FUNCTION__);
+        $file = $this->createFile($directory, 'new-uncommitted-file');
+        $repository = $this->createRepository($directory);
+
+        self::assertEquals(
+            [
+                new Change($file, Status::UNTRACKED, Status::UNTRACKED)
+            ],
+            $repository->status()->toArray()
+        );
+
+        $repository->add($file);
+
+        self::assertEquals(
+            [
+                new Change($file, Status::ADDED, Status::UNMODIFIED)
+            ],
+            $repository->status()->toArray()
+        );
+
+        $repository->reset($file);
+
+        self::assertEquals(
+            [
+                new Change($file, Status::UNTRACKED, Status::UNTRACKED)
+            ],
+            $repository->status()->toArray()
+        );
+    }
+
     public function testTimeout(): void
     {
         $directory = $this->createDirectory(__FUNCTION__);

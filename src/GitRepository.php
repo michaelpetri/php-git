@@ -114,6 +114,27 @@ final class GitRepository implements GitRepositoryInterface
         }
     }
 
+    public function reset(?File $file = null): void
+    {
+        try {
+            $command = ['git', 'reset'];
+
+            if (null !== $file) {
+                $command[] = $this->getRelativePath($file);
+            }
+
+            $this->execute($command);
+        } catch (RuntimeException|\InvalidArgumentException $e) {
+            throw FileNotCommitted::fromDirectoryAndFiles(
+                $this->directory,
+                null === $file
+                    ? $this->status()->map(static fn (Change $change): File => $change->file)->toArray()
+                    : [$file],
+                $e
+            );
+        }
+    }
+
     /** @throws RuntimeException */
     private function execute(array $command): ?string
     {

@@ -37,4 +37,6 @@ interface GitRepositoryInterface
      * @throws FileNotCommitted
      */
     public function commit(string $message, ?File $file = null): void;
+
+    public function reset(?File $file = null): void;
 }
