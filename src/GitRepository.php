@@ -8,6 +8,7 @@ use MichaelPetri\GenericList\ImmutableList;
 use MichaelPetri\Git\Exception\FileNotAdded;
 use MichaelPetri\Git\Exception\FileNotCommitted;
 use MichaelPetri\Git\Exception\FileNotRemoved;
+use MichaelPetri\Git\Exception\FileNotReset;
 use MichaelPetri\Git\Exception\RepositoryNotInitialized;
 use MichaelPetri\Git\Exception\StatusNotFound;
 use MichaelPetri\Git\Value\Change;
@@ -125,7 +126,7 @@ final class GitRepository implements GitRepositoryInterface
 
             $this->execute($command);
         } catch (RuntimeException|\InvalidArgumentException $e) {
-            throw FileNotCommitted::fromDirectoryAndFiles(
+            throw FileNotReset::fromDirectoryAndFiles(
                 $this->directory,
                 null === $file
                     ? $this->status()->map(static fn (Change $change): File => $change->file)->toArray()
