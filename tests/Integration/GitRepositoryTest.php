@@ -7,6 +7,7 @@ namespace Tests\MichaelPetri\Git\Integration;
 use MichaelPetri\Git\Exception\FileNotAdded;
 use MichaelPetri\Git\Exception\FileNotCommitted;
 use MichaelPetri\Git\Exception\FileNotRemoved;
+use MichaelPetri\Git\Exception\FileNotReset;
 use MichaelPetri\Git\Exception\RepositoryNotInitialized;
 use MichaelPetri\Git\Exception\StatusNotFound;
 use MichaelPetri\Git\GitRepository;
@@ -27,10 +28,10 @@ final class GitRepositoryTest extends TestCase
     {
         parent::setUp();
 
-        $this->basePath = \sys_get_temp_dir().\DIRECTORY_SEPARATOR.'GitRepositoryTest';
+        $this->basePath = \sys_get_temp_dir() . \DIRECTORY_SEPARATOR . 'GitRepositoryTest';
 
         // Ensure directory is empty
-        $p = new Process(['rm', '-rf', $this->basePath.\DIRECTORY_SEPARATOR.'*']);
+        $p = new Process(['rm', '-rf', $this->basePath . \DIRECTORY_SEPARATOR . '*']);
         $p->mustRun();
     }
 
@@ -39,11 +40,11 @@ final class GitRepositoryTest extends TestCase
         $directory = $this->createDirectory(__FUNCTION__);
         $repository = new GitRepository($directory, Duration::inSeconds(60));
 
-        self::assertDirectoryDoesNotExist($directory->path.\DIRECTORY_SEPARATOR.'.git');
+        self::assertDirectoryDoesNotExist($directory->path . \DIRECTORY_SEPARATOR . '.git');
 
         $repository->init();
 
-        self::assertDirectoryExists($directory->path.\DIRECTORY_SEPARATOR.'.git');
+        self::assertDirectoryExists($directory->path . \DIRECTORY_SEPARATOR . '.git');
     }
 
     public function testInitFailsWhenDirectoryNotExists(): void
@@ -328,6 +329,19 @@ final class GitRepositoryTest extends TestCase
         );
     }
 
+    public function testResetFailsWhenTryToResetFileOutsideRepository(): void
+    {
+        $directory = $this->createDirectory(__FUNCTION__);
+        $repository = $this->createRepository($directory);
+        $file = File::from('/another/location');
+
+        $this->expectExceptionObject(
+            FileNotReset::fromDirectoryAndFiles($file->directory, [$file])
+        );
+
+        $repository->reset($file);
+    }
+
     public function testTimeout(): void
     {
         $directory = $this->createDirectory(__FUNCTION__);
@@ -343,7 +357,7 @@ final class GitRepositoryTest extends TestCase
     /** @psalm-param non-empty-string $name */
     private function createDirectory(string $name): Directory
     {
-        $path = $this->basePath.\DIRECTORY_SEPARATOR.$name;
+        $path = $this->basePath . \DIRECTORY_SEPARATOR . $name;
 
         $p = new Process(['rm', '-rf', $path]);
         $p->mustRun();
@@ -357,7 +371,7 @@ final class GitRepositoryTest extends TestCase
     /** @psalm-param non-empty-string $name */
     private function createFile(Directory $directory, string $name): File
     {
-        $path = $directory->path.\DIRECTORY_SEPARATOR.$name;
+        $path = $directory->path . \DIRECTORY_SEPARATOR . $name;
 
         file_put_contents($path, '');
 

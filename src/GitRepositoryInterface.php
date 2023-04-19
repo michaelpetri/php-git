@@ -8,6 +8,7 @@ use MichaelPetri\GenericList\ImmutableList;
 use MichaelPetri\Git\Exception\FileNotAdded;
 use MichaelPetri\Git\Exception\FileNotCommitted;
 use MichaelPetri\Git\Exception\FileNotRemoved;
+use MichaelPetri\Git\Exception\FileNotReset;
 use MichaelPetri\Git\Exception\RepositoryNotInitialized;
 use MichaelPetri\Git\Exception\StatusNotFound;
 use MichaelPetri\Git\Value\Change;
@@ -38,5 +39,6 @@ interface GitRepositoryInterface
      */
     public function commit(string $message, ?File $file = null): void;
 
+    /** @throws FileNotReset */
     public function reset(?File $file = null): void;
 }
