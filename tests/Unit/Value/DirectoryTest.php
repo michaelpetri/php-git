@@ -19,6 +19,14 @@ final class DirectoryTest extends TestCase
         self::assertEquals($this->basePath, $directory->path);
     }
 
+    public function testSub(): void
+    {
+        self::assertEquals(
+            $this->basePath . \DIRECTORY_SEPARATOR . 'sub-directory',
+            Directory::from($this->basePath . \DIRECTORY_SEPARATOR)->sub('sub-directory')->path
+        );
+    }
+
     public function testFailToCreateFromEmptyString(): void
     {
         $this->expectExceptionObject(

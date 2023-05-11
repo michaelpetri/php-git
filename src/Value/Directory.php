@@ -13,6 +13,14 @@ final class Directory
     ) {
     }
 
+    /** @psalm-param non-empty-string $name */
+    public function sub(string $name): self
+    {
+        return self::from(
+            $this->path . \DIRECTORY_SEPARATOR .$name
+        );
+    }
+
     public static function from(mixed $value): self
     {
         if (!\is_string($value)) {
