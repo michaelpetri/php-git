@@ -37,25 +37,41 @@ final class GitRepositoryTest extends TestCase
 
     public function testInit(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $repository = new GitRepository($directory, Duration::inSeconds(60));
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $gitDir = self::makeDefaultGitPath($workTree);
 
-        self::assertDirectoryDoesNotExist($directory->path . \DIRECTORY_SEPARATOR . '.git');
+        $repository = new GitRepository($workTree, $gitDir, Duration::inSeconds(60));
+
+        self::assertDirectoryDoesNotExist($gitDir->path);
 
         $repository->init();
 
-        self::assertDirectoryExists($directory->path . \DIRECTORY_SEPARATOR . '.git');
+        self::assertDirectoryExists($gitDir->path);
+    }
+
+    public function testInitWithDifferentDirectories(): void
+    {
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $gitDir = Directory::from($this->basePath . \DIRECTORY_SEPARATOR . __FUNCTION__ . '_GIT_DIRECTORY');
+
+        $repository = new GitRepository($workTree, $gitDir, Duration::inSeconds(60));
+
+        self::assertDirectoryDoesNotExist($gitDir->path);
+
+        $repository->init();
+
+        self::assertDirectoryExists($gitDir->path);
     }
 
     public function testInitFailsWhenDirectoryNotExists(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $repository = new GitRepository($directory, Duration::inSeconds(60));
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $repository = new GitRepository($workTree, self::makeDefaultGitPath($workTree), Duration::inSeconds(60));
 
-        $this->delete($directory);
+        $this->delete($workTree);
 
         $this->expectExceptionObject(
-            RepositoryNotInitialized::fromDirectory($directory)
+            RepositoryNotInitialized::fromDirectory($workTree)
         );
 
         $repository->init();
@@ -63,9 +79,9 @@ final class GitRepositoryTest extends TestCase
 
     public function testAdd(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $file = $this->createFile($directory, 'existing-uncommitted-file');
-        $repository = $this->createRepository($directory);
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $file = $this->createFile($workTree, 'existing-uncommitted-file');
+        $repository = $this->createRepository($workTree);
 
         $repository->add($file);
 
@@ -79,8 +95,8 @@ final class GitRepositoryTest extends TestCase
 
     public function testAddFailsWhenTryToAddFileOutsideRepository(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $repository = $this->createRepository($directory);
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $repository = $this->createRepository($workTree);
         $file = File::from('/another/location');
 
         $this->expectExceptionObject(
@@ -92,9 +108,9 @@ final class GitRepositoryTest extends TestCase
 
     public function testRemove(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $file = $this->createFile($directory, 'existing-committed-file');
-        $repository = $this->createRepository($directory, [$file]);
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $file = $this->createFile($workTree, 'existing-committed-file');
+        $repository = $this->createRepository($workTree, [$file]);
 
         $repository->remove($file);
 
@@ -108,9 +124,9 @@ final class GitRepositoryTest extends TestCase
 
     public function testRemoveFromIndex(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $file = $this->createFile($directory, 'existing-committed-file');
-        $repository = $this->createRepository($directory);
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $file = $this->createFile($workTree, 'existing-committed-file');
+        $repository = $this->createRepository($workTree);
 
         $repository->add($file);
         $repository->remove($file, true);
@@ -125,8 +141,8 @@ final class GitRepositoryTest extends TestCase
 
     public function testRemoveFailsWhenTryToRemoveFileOutsideRepository(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $repository = $this->createRepository($directory);
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $repository = $this->createRepository($workTree);
         $file = File::from('/another/location');
 
         $this->expectExceptionObject(
@@ -138,11 +154,11 @@ final class GitRepositoryTest extends TestCase
 
     public function testCommit(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $file1 = $this->createFile($directory, 'existing-uncommitted-file-1');
-        $file2 = $this->createFile($directory, 'existing-uncommitted-file-2');
-        $file3 = $this->createFile($directory, 'existing-uncommitted-file-3');
-        $repository = $this->createRepository($directory);
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $file1 = $this->createFile($workTree, 'existing-uncommitted-file-1');
+        $file2 = $this->createFile($workTree, 'existing-uncommitted-file-2');
+        $file3 = $this->createFile($workTree, 'existing-uncommitted-file-3');
+        $repository = $this->createRepository($workTree);
 
         self::assertEquals(
             [
@@ -174,8 +190,8 @@ final class GitRepositoryTest extends TestCase
 
     public function testCommitFailsWhenTryToCommitFileOutsideRepository(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $repository = $this->createRepository($directory);
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $repository = $this->createRepository($workTree);
         $file = File::from('/another/location');
 
         $this->expectExceptionObject(
@@ -187,8 +203,8 @@ final class GitRepositoryTest extends TestCase
 
     public function testStatus(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $repository = $this->createRepository($directory);
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $repository = $this->createRepository($workTree);
 
         self::assertEquals(
             [],
@@ -198,13 +214,13 @@ final class GitRepositoryTest extends TestCase
 
     public function testStatusFailsWhenDirectoryNotExists(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $repository = $this->createRepository($directory);
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $repository = $this->createRepository($workTree);
 
-        $this->delete($directory);
+        $this->delete($workTree);
 
         $this->expectExceptionObject(
-            StatusNotFound::fromDirectory($directory)
+            StatusNotFound::fromDirectory($workTree)
         );
 
         $repository->status();
@@ -212,9 +228,9 @@ final class GitRepositoryTest extends TestCase
 
     public function testNewFileGetsDetected(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $file = $this->createFile($directory, 'new-uncommitted-file');
-        $repository = $this->createRepository($directory);
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $file = $this->createFile($workTree, 'new-uncommitted-file');
+        $repository = $this->createRepository($workTree);
 
         self::assertEquals(
             [
@@ -226,9 +242,9 @@ final class GitRepositoryTest extends TestCase
 
     public function testModifiedFileGetsTracked(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $file = $this->createFile($directory, 'existing-committed-file');
-        $repository = $this->createRepository($directory, [$file]);
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $file = $this->createFile($workTree, 'existing-committed-file');
+        $repository = $this->createRepository($workTree, [$file]);
 
         self::assertEmpty($repository->status()->toArray());
 
@@ -244,9 +260,9 @@ final class GitRepositoryTest extends TestCase
 
     public function testDeletedFileGetsTracked(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $file = $this->createFile($directory, 'existing-committed-file');
-        $repository = $this->createRepository($directory, [$file]);
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $file = $this->createFile($workTree, 'existing-committed-file');
+        $repository = $this->createRepository($workTree, [$file]);
 
         self::assertEmpty($repository->status()->toArray());
 
@@ -262,10 +278,10 @@ final class GitRepositoryTest extends TestCase
 
     public function testResetAllFiles(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $file1 = $this->createFile($directory, 'new-uncommitted-file-1');
-        $file2 = $this->createFile($directory, 'new-uncommitted-file-2');
-        $repository = $this->createRepository($directory);
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $file1 = $this->createFile($workTree, 'new-uncommitted-file-1');
+        $file2 = $this->createFile($workTree, 'new-uncommitted-file-2');
+        $repository = $this->createRepository($workTree);
 
         self::assertEquals(
             [
@@ -299,9 +315,9 @@ final class GitRepositoryTest extends TestCase
 
     public function testResetSingleFile(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $file = $this->createFile($directory, 'new-uncommitted-file');
-        $repository = $this->createRepository($directory);
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $file = $this->createFile($workTree, 'new-uncommitted-file');
+        $repository = $this->createRepository($workTree);
 
         self::assertEquals(
             [
@@ -331,8 +347,8 @@ final class GitRepositoryTest extends TestCase
 
     public function testResetFailsWhenTryToResetFileOutsideRepository(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $repository = $this->createRepository($directory);
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $repository = $this->createRepository($workTree);
         $file = File::from('/another/location');
 
         $this->expectExceptionObject(
@@ -344,14 +360,26 @@ final class GitRepositoryTest extends TestCase
 
     public function testTimeout(): void
     {
-        $directory = $this->createDirectory(__FUNCTION__);
-        $repository = new GitRepository($directory, Duration::inMilliseconds(1));
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $repository = new GitRepository($workTree, self::makeDefaultGitPath($workTree), Duration::inMilliseconds(1));
 
         $this->expectExceptionObject(
-            RepositoryNotInitialized::fromDirectory($directory)
+            RepositoryNotInitialized::fromDirectory($workTree)
         );
 
         $repository->init();
+    }
+
+    public function testBareRepositoryWithGitDirInsideWorkTreeDoesNotTrackGitFiles(): void
+    {
+        $workTree = $this->createDirectory(__FUNCTION__);
+        $gitDir = self::makeDefaultGitPath($workTree);
+
+        $repository = new GitRepository($workTree, $gitDir, Duration::inSeconds(60));
+
+        $repository->init();
+
+        self::assertEmpty($repository->status()->toArray());
     }
 
     /** @psalm-param non-empty-string $name */
@@ -369,9 +397,9 @@ final class GitRepositoryTest extends TestCase
     }
 
     /** @psalm-param non-empty-string $name */
-    private function createFile(Directory $directory, string $name): File
+    private function createFile(Directory $workTree, string $name): File
     {
-        $path = $directory->path . \DIRECTORY_SEPARATOR . $name;
+        $path = $workTree->path . \DIRECTORY_SEPARATOR . $name;
 
         file_put_contents($path, '');
 
@@ -379,29 +407,29 @@ final class GitRepositoryTest extends TestCase
     }
 
     /** @psalm-param File $files */
-    private function createRepository(Directory $directory, array $files = []): GitRepository
+    private function createRepository(Directory $workTree, array $files = []): GitRepository
     {
-        $p = new Process(['git', 'init'], $directory->path);
+        $p = new Process(['git', 'init'], $workTree->path);
         $p->mustRun();
 
-        $p = new Process(['git', 'config', 'user.email', 'SymfonyFilesystemEventReceiver@localhost'], $directory->path);
+        $p = new Process(['git', 'config', 'user.email', 'SymfonyFilesystemEventReceiver@localhost'], $workTree->path);
         $p->mustRun();
 
-        $p = new Process(['git', 'config', 'user.name', 'Symfony Filesystem Event Receiver'], $directory->path);
+        $p = new Process(['git', 'config', 'user.name', 'Symfony Filesystem Event Receiver'], $workTree->path);
         $p->mustRun();
 
-        $repository = new GitRepository($directory, Duration::inSeconds(60));
+        $repository = new GitRepository($workTree, self::makeDefaultGitPath($workTree), Duration::inSeconds(60));
 
         if ([] === $files) {
             return $repository;
         }
 
         foreach ($files as $file) {
-            $p = new Process(['git', 'add', $file->toString()], $directory->path);
+            $p = new Process(['git', 'add', $file->toString()], $workTree->path);
             $p->mustRun();
         }
 
-        $p = new Process(['git', 'commit', '-m', 'Initial commit'], $directory->path);
+        $p = new Process(['git', 'commit', '-m', 'Initial commit'], $workTree->path);
         $p->mustRun();
 
         return $repository;
@@ -422,5 +450,12 @@ final class GitRepositoryTest extends TestCase
             $p = new Process(['rm', '-rf', $target->path]);
             $p->mustRun();
         }
+    }
+
+    private static function makeDefaultGitPath(Directory $workTree): Directory
+    {
+        return Directory::from(
+            \rtrim($workTree->path, \DIRECTORY_SEPARATOR) . \DIRECTORY_SEPARATOR . '.git'
+        );
     }
 }

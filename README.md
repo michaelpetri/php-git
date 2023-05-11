@@ -15,10 +15,13 @@ composer require michaelpetri/php-git
 ## Example:
 
 ```php
-
 $file = File::from('/home/mpetri/PhpstormProjects/php-git/README.md');
 
-$repository = new GitRepository($file->directory);
+$repository = new GitRepository(
+    $file->directory,
+    Directory::from('/home/mpetri/PhpstormProjects/php-git/.git'),
+    Duration::inSeconds(60)
+);
 
 $repository->add($file);
 $repository->commit('Initial commit')

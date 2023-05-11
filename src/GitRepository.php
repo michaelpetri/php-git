@@ -22,7 +22,8 @@ use Symfony\Component\Process\Process;
 final class GitRepository implements GitRepositoryInterface
 {
     public function __construct(
-        private readonly Directory $directory,
+        private readonly Directory $workTree,
+        private readonly Directory $gitDir,
         private readonly ?Duration $timeout
     ) {
     }
@@ -30,20 +31,40 @@ final class GitRepository implements GitRepositoryInterface
     public function init(): void
     {
         try {
-            $this->execute(['git', 'init']);
-            $this->execute(['git', 'config', 'user.email', 'php-git@localhost']);
-            $this->execute(['git', 'config', 'user.name', 'michaelpetri/php-git']);
+            $this->execute(['mkdir', '-p', $this->gitDir->path], $this->workTree);
+            $this->execute(['git', 'init', '--bare'], $this->gitDir);
+            $this->execute([
+                'git',
+                '--git-dir=' . $this->gitDir->path,
+                '--work-tree=' . $this->workTree->path,
+                'config',
+                'user.email', 'php-git@localhost'
+            ]);
+            $this->execute([
+                'git',
+                '--git-dir=' . $this->gitDir->path,
+                '--work-tree=' . $this->workTree->path,
+                'config',
+                'user.name',
+                'michaelpetri/php-git'
+            ]);
         } catch (RuntimeException $e) {
-            throw RepositoryNotInitialized::fromDirectory($this->directory, $e);
+            throw RepositoryNotInitialized::fromDirectory($this->workTree, $e);
         }
     }
 
     public function status(): ImmutableList
     {
         try {
-            $output = $this->execute(['git', 'status', '--short']);
+            $output = $this->execute([
+                'git',
+                '--git-dir=' . $this->gitDir->path,
+                '--work-tree=' . $this->workTree->path,
+                'status',
+                '--short'
+            ]);
         } catch (RuntimeException $e) {
-            throw StatusNotFound::fromDirectory($this->directory, $e);
+            throw StatusNotFound::fromDirectory($this->workTree, $e);
         }
 
         if (null === $output) {
@@ -59,7 +80,7 @@ final class GitRepository implements GitRepositoryInterface
                 ? \trim($match[3])
                 : throw new \InvalidArgumentException('Could not parse filename from git status.');
             $changes[] = new Change(
-                File::from($this->directory->path . \DIRECTORY_SEPARATOR . $filename),
+                File::from($this->workTree->path . \DIRECTORY_SEPARATOR . $filename),
                 self::parseStatusFlag($match[1] ?? null),
                 self::parseStatusFlag($match[2] ?? null)
             );
@@ -71,7 +92,13 @@ final class GitRepository implements GitRepositoryInterface
     public function add(File $file): void
     {
         try {
-            $this->execute(['git', 'add', $this->getRelativePath($file)]);
+            $this->execute([
+                'git',
+                '--git-dir=' . $this->gitDir->path,
+                '--work-tree=' . $this->workTree->path,
+                'add',
+                $this->getRelativePath($file)
+            ]);
         } catch (RuntimeException|\InvalidArgumentException $e) {
             throw FileNotAdded::fromFile($file, $e);
         }
@@ -80,7 +107,12 @@ final class GitRepository implements GitRepositoryInterface
     public function remove(File $file, bool $cached = false): void
     {
         try {
-            $command = ['git', 'rm'];
+            $command = [
+                'git',
+                '--git-dir=' . $this->gitDir->path,
+                '--work-tree=' . $this->workTree->path,
+                'rm'
+            ];
 
             if ($cached) {
                 $command[] = '--cached';
@@ -97,7 +129,14 @@ final class GitRepository implements GitRepositoryInterface
     public function commit(string $message, ?File $file = null): void
     {
         try {
-            $command = ['git', 'commit', '-m', $message];
+            $command = [
+                'git',
+                '--git-dir=' . $this->gitDir->path,
+                '--work-tree=' . $this->workTree->path,
+                'commit',
+                '-m',
+                $message
+            ];
 
             if (null !== $file) {
                 $command[] = $this->getRelativePath($file);
@@ -106,7 +145,7 @@ final class GitRepository implements GitRepositoryInterface
             $this->execute($command);
         } catch (RuntimeException|\InvalidArgumentException $e) {
             throw FileNotCommitted::fromDirectoryAndFiles(
-                $this->directory,
+                $this->workTree,
                 null === $file
                     ? $this->status()->map(static fn (Change $change): File => $change->file)->toArray()
                     : [$file],
@@ -118,7 +157,12 @@ final class GitRepository implements GitRepositoryInterface
     public function reset(?File $file = null): void
     {
         try {
-            $command = ['git', 'reset'];
+            $command = [
+                'git',
+                '--git-dir=' . $this->gitDir->path,
+                '--work-tree=' . $this->workTree->path,
+                'reset'
+            ];
 
             if (null !== $file) {
                 $command[] = $this->getRelativePath($file);
@@ -127,7 +171,7 @@ final class GitRepository implements GitRepositoryInterface
             $this->execute($command);
         } catch (RuntimeException|\InvalidArgumentException $e) {
             throw FileNotReset::fromDirectoryAndFiles(
-                $this->directory,
+                $this->workTree,
                 null === $file
                     ? $this->status()->map(static fn (Change $change): File => $change->file)->toArray()
                     : [$file],
@@ -136,12 +180,15 @@ final class GitRepository implements GitRepositoryInterface
         }
     }
 
-    /** @throws RuntimeException */
-    private function execute(array $command): ?string
+    /**
+     * @psalm-param list<string> $command
+     * @throws RuntimeException
+     */
+    private function execute(array $command, Directory $cwd = null): ?string
     {
         $process = new Process(
             $command,
-            $this->directory->path,
+            $cwd?->path ?? $this->workTree->path,
             null,
             null,
             $this->timeout?->seconds
@@ -173,13 +220,13 @@ final class GitRepository implements GitRepositoryInterface
 
     private function getRelativePath(File $file): string
     {
-        if (!\str_starts_with($file->toString(), $this->directory->path)) {
+        if (!\str_starts_with($file->toString(), $this->workTree->path)) {
             throw new \InvalidArgumentException('The given file is not part of the repository.');
         }
 
         return \substr(
             \str_replace(
-                $this->directory->path,
+                $this->workTree->path,
                 '',
                 $file->toString()
             ),
