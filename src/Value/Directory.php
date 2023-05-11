@@ -13,10 +13,23 @@ final class Directory
     ) {
     }
 
+    /** @psalm-param non-empty-string $name */
+    public function sub(string $name): self
+    {
+        return self::from(
+            $this->path . \DIRECTORY_SEPARATOR .$name
+        );
+    }
+
+    /** @psalm-pure */
     public static function from(mixed $value): self
     {
         if (!\is_string($value)) {
             throw new \InvalidArgumentException(\sprintf('Can only create directory from string, got "%s"', get_debug_type($value)));
+        }
+
+        if ('/' !== $value) {
+            $value = \rtrim($value, \DIRECTORY_SEPARATOR);
         }
 
         $value = \trim($value);

@@ -12,11 +12,36 @@ final class DirectoryTest extends TestCase
 {
     private string $basePath = '/tmp';
 
-    public function testCreate(): void
+    public function testFrom(): void
     {
-        $directory = Directory::from($this->basePath);
+        self::assertEquals(
+            $this->basePath,
+            Directory::from($this->basePath)->path
+        );
+    }
 
-        self::assertEquals($this->basePath, $directory->path);
+    public function testFromRemovesTailingSlashes(): void
+    {
+        self::assertEquals(
+            $this->basePath,
+            Directory::from($this->basePath . \DIRECTORY_SEPARATOR)->path
+        );
+    }
+
+    public function testFromDoesNotRemoveTailingSlashWhenRootDirectory(): void
+    {
+        self::assertEquals(
+            '/',
+            Directory::from('/')->path
+        );
+    }
+
+    public function testSub(): void
+    {
+        self::assertEquals(
+            $this->basePath . \DIRECTORY_SEPARATOR . 'sub-directory',
+            Directory::from($this->basePath . \DIRECTORY_SEPARATOR)->sub('sub-directory')->path
+        );
     }
 
     public function testFailToCreateFromEmptyString(): void
