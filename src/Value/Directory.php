@@ -21,10 +21,15 @@ final class Directory
         );
     }
 
+    /** @psalm-pure */
     public static function from(mixed $value): self
     {
         if (!\is_string($value)) {
             throw new \InvalidArgumentException(\sprintf('Can only create directory from string, got "%s"', get_debug_type($value)));
+        }
+
+        if ('/' !== $value) {
+            $value = \rtrim($value, \DIRECTORY_SEPARATOR);
         }
 
         $value = \trim($value);
