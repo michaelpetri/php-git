@@ -8,24 +8,27 @@
     "packages": [
         {
             "name": "michaelpetri/php-generic-list",
-            "version": "0.2.0",
+            "version": "0.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/michaelpetri/php-generic-list.git",
-                "reference": "7d7e30a58a1fed0c91f3817d2a0cbb0314b460d6"
+                "reference": "02f9e22e454e5861fbda82908a737fcad3ed754d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/michaelpetri/php-generic-list/zipball/7d7e30a58a1fed0c91f3817d2a0cbb0314b460d6",
-                "reference": "7d7e30a58a1fed0c91f3817d2a0cbb0314b460d6",
+                "url": "https://api.github.com/repos/michaelpetri/php-generic-list/zipball/02f9e22e454e5861fbda82908a737fcad3ed754d",
+                "reference": "02f9e22e454e5861fbda82908a737fcad3ed754d",
                 "shasum": ""
             },
             "require": {
                 "php": "~8.1.0 || ~8.2.0"
             },
+            "conflict": {
+                "stevebauman/unfinalize": "*"
+            },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^3.16.0",
-                "phpunit/phpunit": "^10.0.19",
+                "phpunit/phpunit": "^10.1.2",
                 "roave/security-advisories": "dev-latest",
                 "vimeo/psalm": "^5.9.0"
             },
@@ -48,9 +51,9 @@
             "description": "Basic generic list with psalm support",
             "support": {
                 "issues": "https://github.com/michaelpetri/php-generic-list/issues",
-                "source": "https://github.com/michaelpetri/php-generic-list/tree/0.2.0"
+                "source": "https://github.com/michaelpetri/php-generic-list/tree/0.2.1"
             },
-            "time": "2023-04-06T14:30:09+00:00"
+            "time": "2023-09-28T08:54:43+00:00"
         },
         {
             "name": "symfony/process",
